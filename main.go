@@ -7,13 +7,21 @@ import (
 	"time"
 
 	"github.com/ussg43/opselling/internal/spreadsheet"
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/api/sheets/v4"
 )
 
 func main() {
-	sheetID := "1rf9JHoq1HItqsxCEYPXK5JKl_Or8KbOrfzw2yDmu2Js"
+	err := godotenv.Load()
+	if err != nil{
+		log.Fatalf("Could not load .env file %v", err)
+	}
+	sheetID := os.Getenv("SHEET_ID")
+	if sheetID == ""{
+		log.Fatal("error loading sheet id")
+	}
 	ctx := context.Background()
 	b, err := os.ReadFile("stable-liberty-474404-m1-5dd405f1795c.json")
 	if err != nil {
