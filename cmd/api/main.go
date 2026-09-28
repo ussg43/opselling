@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/ussg43/opselling/internal/db"
 	"github.com/ussg43/opselling/internal/env"
@@ -9,13 +13,11 @@ import (
 )
 
 func main() {
-	conStr := env.GetEnvVar("DB_CONN", "str")
 	httpPort := env.GetEnvVar("HTTP_PORT", "5656")
-	rpcPort := env.GetEnvVar("RPC_PORT", "135")
+	grpcPort := env.GetEnvVar("RPC_PORT", "135")
 	config := &config{
-		dbConn:   conStr,
 		httpPort: httpPort,
-		rpcPort:  rpcPort,
+		grpcPort:  grpcPort,
 	}
 
 	db, err := db.New()
@@ -25,12 +27,18 @@ func main() {
 
 	storage := store.NewStorage(db)
 
-	app := &application{
+	app := &Application{
 		config:  *config,
 		db:      db,
 		storage: storage,
 	}
 
 	app.mount()
+	
+	ctx, signal := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer signal()
+	if err := app.run(ctx); err != nil {
+		log.Fatal(err)
+	}
 
 }
