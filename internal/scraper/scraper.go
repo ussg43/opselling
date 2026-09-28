@@ -17,7 +17,7 @@ type Player struct{
 func GetCardData(name string, ID string) (string, error){
 	price := ""
 	name = strings.ReplaceAll(name, " ","-")
-	url := strings.ToLower(fmt.Sprintf("https://futbin.com/26/player/%s/%s",ID,name))
+	url := strings.ToLower(fmt.Sprintf("https://futbin.com/27/player/%s/%s",ID,name))
 	log.Println(url)
 	c:= colly.NewCollector(
 		colly.AllowURLRevisit(),
