@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 	"github.com/ussg43/opselling/internal/store"
+	"golang.org/x/oauth2"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -19,7 +20,12 @@ import (
 type config struct {
 	httpPort string
 	grpcPort string
-	sheets   string
+	sheetsConfig  sheetsConfig
+}
+
+type sheetsConfig struct {
+	oauthConfig *oauth2.Config
+
 }
 
 type Application struct {
@@ -36,6 +42,15 @@ func (a *Application) mount() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	r.Route("/v1", func(r chi.Router){
+
+
+		r.Route("/user", func(r chi.Router){
+			r.Get("/auth/{provider}/callback", a.getAuthCallback)
+			r.Post("/create", a.createUserHandler)
+		})
+	})
 
 	a.httpSrv = &http.Server{
 		Addr:         a.config.httpPort,
@@ -100,3 +115,4 @@ func (a *Application) run(ctx context.Context) error {
 
 	return g.Wait()
 }
+
